@@ -1,0 +1,46 @@
+Snake and Ladder Game
+Project Description
+A fun, beginner‑friendly implementation of the classic Snakes and Ladders board game built with Python 3 and Streamlit. The game runs entirely in the browser – no database, Flask, or Django required.
+
+Features
+Two‑player mode (Player 1 vs Player 2)
+100‑cell board displayed as a colorful 10×10 grid
+Roll a dice (1‑6) with a button – dice value shown after each roll
+Automatic player movement with rules:
+Exact roll required to land on cell 100 (overshoot → stay in place)
+Snakes move the player down, ladders move the player up
+Turn indicator and dice display (large emoji)
+Move and dice roll history for each player
+Celebration animation (st.balloons()) when a player wins
+Restart game button to start a new match
+Sidebar with game rules, an "About the Game" section and a reset button
+Modern UI with gradient title, custom CSS for attractive buttons and cards
+Fun messages like "Great! You climbed a ladder!" and "Oops! A snake bit you!"
+Installation
+bash
+
+# Clone the repository (or copy the project folder)
+# Navigate to the project directory
+cd SnakeLadder
+# Create a virtual environment (optional but recommended)
+python -m venv venv
+source venv/bin/activate   # Linux/macOS
+venv\\Scripts\\activate    # Windows
+# Install dependencies
+pip install -r requirements.txt
+How to Run
+bash
+
+streamlit run app.py
+Open the displayed URL (usually http://localhost:8501) in your browser.
+
+Screenshots
+(Add screenshots of the running app here – e.g., the board, dice roll, and winner celebration.)
+
+Future Improvements
+Add sound effects for dice rolls, ladders, and snakes.
+Animated movement of the player tokens.
+Support for more than two players.
+Persist game history to a file.
+Mobile‑friendly layout adjustments.
+Enjoy playing and feel free to tweak the code – it’s written to be easy to understand for beginners!
