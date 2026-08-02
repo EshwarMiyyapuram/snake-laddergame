@@ -14,7 +14,7 @@ Features:
 """
 
 import streamlit as st
-from utils import (
+from Utils import (
     BOARD_SIZE,
     BOARD_DIM,
     SNAKES,
