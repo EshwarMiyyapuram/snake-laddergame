@@ -1,6 +1,7 @@
 # app.py
 """Streamlit Snake & Ladder — 2 to 6 players, extra turn on 6, custom names,
-snake/ladder destination shown on board, side dice panel, winner announcement."""
+snake/ladder destination shown on board, side dice panel, winner announcement,
+and responsive layout for mobile and laptop screens."""
 
 import streamlit as st
 from Utils import (
@@ -15,7 +16,7 @@ from Utils import (
     record_move,
 )
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_title="Snake & Ladder", page_icon="🐍")
 
 # -------------------------------------------------------------------
 # Setup screen (choose number of players + names) before game starts
@@ -85,7 +86,7 @@ if st.sidebar.button("🔄 Restart / New Game"):
     st.rerun()
 
 # -------------------------------------------------------------------
-# Custom CSS
+# Custom CSS — responsive for mobile and laptop
 # -------------------------------------------------------------------
 st.markdown(
     """
@@ -94,7 +95,7 @@ st.markdown(
         background: linear-gradient(90deg, #ff7e5f, #feb47b);
         -webkit-background-clip: text;
         color: transparent;
-        font-size: 3rem;
+        font-size: clamp(1.6rem, 5vw, 3rem);
         font-weight: bold;
         text-align: center;
         margin-bottom: 1rem;
@@ -102,17 +103,21 @@ st.markdown(
     .cell {
         border: 1px solid #ddd;
         border-radius: 4px;
-        padding: 4px;
-        height: 70px;
-        width: 70px;
+        padding: clamp(2px, 0.5vw, 6px);
+        height: clamp(38px, 8vw, 70px);
+        width: 100%;
+        aspect-ratio: 1 / 1;
         text-align: center;
-        font-size: 0.75rem;
+        font-size: clamp(0.55rem, 1.6vw, 0.85rem);
         background: #f9f9f9;
         color: #111;
         display: flex;
         flex-direction: column;
         justify-content: center;
+        align-items: center;
         line-height: 1.1;
+        overflow: hidden;
+        box-sizing: border-box;
     }
     .stButton>button {
         background: linear-gradient(90deg, #36d1dc, #5b86e5);
@@ -122,8 +127,34 @@ st.markdown(
         padding: 0.5rem 1rem;
         font-weight: 600;
         width: 100%;
+        font-size: clamp(0.85rem, 2vw, 1rem);
     }
     .stButton>button:hover { filter: brightness(1.1); }
+
+    /* Tighten spacing and shrink text on small screens (phones) */
+    @media (max-width: 640px) {
+        div[data-testid="column"] {
+            padding: 0 2px !important;
+        }
+        div[data-testid="stMetricValue"] {
+            font-size: 1.1rem !important;
+        }
+        div[data-testid="stMetricLabel"] {
+            font-size: 0.75rem !important;
+        }
+        .cell {
+            font-size: clamp(0.5rem, 2.8vw, 0.7rem);
+        }
+        .block-container {
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+    }
+
+    /* Prevent sideways scrolling on any screen size */
+    section.main > div {
+        overflow-x: hidden;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -140,7 +171,7 @@ if state["winner"]:
     st.success(f"🎉 {winner_icon} {winner_name} wins the game! 🎉")
 
 # -------------------------------------------------------------------
-# Main layout
+# Main layout — side by side on laptop, stacks automatically on mobile
 # -------------------------------------------------------------------
 board_col, side_col = st.columns([3, 1])
 
