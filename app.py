@@ -25,6 +25,16 @@ from utils import (
     initialize_game_state,
     record_move,
 )
+    BOARD_SIZE,
+    BOARD_DIM,
+    SNAKES,
+    LADDERS,
+    roll_dice,
+    move_player,
+    format_cell,
+    initialize_game_state,
+    record_move,
+)
 
 # -------------------------------------------------------------------
 # Session state initialisation
