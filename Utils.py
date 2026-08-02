@@ -10,7 +10,7 @@ The code is intentionally simple and heavily commented to be beginner‑friendly
 """
 
 import random
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple
 
 # ------------------------------------------------------------
 # Board configuration
@@ -120,15 +120,25 @@ def initialize_game_state() -> Dict:
     }
 
 
-def record_move(state: Dict, roll: int, message: str) -> None:
+def record_move(
+    state: Dict,
+    roll: int,
+    message: str,
+    pos_before: int,
+    pos_after: int,
+) -> None:
     """Append a textual description of the most recent turn to the history.
 
     The function mutates the provided *state* dictionary.
+
+    Args:
+        state: The game state dict.
+        roll: The dice value rolled.
+        message: Any special event message (ladder/snake/overshoot).
+        pos_before: Player's position before this move.
+        pos_after: Player's position after this move.
     """
     player = state["turn"]
-    pos_before = state[player]
-    # After movement the state already contains the new position
-    pos_after = state[player]
     entry = (
         f"{player.title()} rolled {roll}. "
         f"Moved from {pos_before} to {pos_after}. "
