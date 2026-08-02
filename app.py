@@ -3,7 +3,7 @@
 
 Features:
 - 10×10 board visualised with emojis and numbers
-- Two players (🔴 Player 1, 🔵 Player 2)
+- Two players (🔴 Player 1, 🔵 Player 2)
 - Roll dice button (random 1‑6)
 - Automatic movement respecting snakes, ladders and exact‑100 rule
 - Turn indicator, dice display, move history, and score board
@@ -15,16 +15,6 @@ Features:
 
 import streamlit as st
 from utils import (
-    BOARD_SIZE,
-    BOARD_DIM,
-    SNAKES,
-    LADDERS,
-    roll_dice,
-    move_player,
-    format_cell,
-    initialize_game_state,
-    record_move,
-)
     BOARD_SIZE,
     BOARD_DIM,
     SNAKES,
@@ -101,7 +91,7 @@ with st.sidebar.expander("ℹ️ About the Game"):
 # Restart button (sidebar)
 if st.sidebar.button("🔄 Restart Game"):
     st.session_state["game"] = initialize_game_state()
-    st.experimental_rerun()
+    st.rerun()
 
 # -------------------------------------------------------------------
 # Custom CSS for a modern look
@@ -169,10 +159,11 @@ if st.button("Roll Dice 🎲") and not state["winner"]:
     roll = roll_dice()
     state["dice"] = roll
     # Apply move for the current player
-    new_pos, message = move_player(state[state["turn"]], roll)
+    old_pos = state[state["turn"]]
+    new_pos, message = move_player(old_pos, roll)
     state[state["turn"]] = new_pos
-    # Record the move
-    record_move(state, roll, message)
+    # Record the move (pass explicit before/after positions)
+    record_move(state, roll, message, old_pos, new_pos)
     # Check for win condition
     if new_pos == BOARD_SIZE:
         state["winner"] = state["turn"]
@@ -181,7 +172,7 @@ if st.button("Roll Dice 🎲") and not state["winner"]:
     else:
         # Switch turn only if game not over
         state["turn"] = "player2" if state["turn"] == "player1" else "player1"
-    st.experimental_rerun()
+    st.rerun()
 
 # -------------------------------------------------------------------
 # History panels
@@ -204,6 +195,6 @@ display_board()
 # -------------------------------------------------------------------
 player1_moves = sum(1 for h in state["history"] if h.startswith("Player1"))
 player2_moves = sum(1 for h in state["history"] if h.startswith("Player2"))
-st.caption(f"🔴 Player 1 moves: {player1_moves} | 🔵 Player 2 moves: {player2_moves}")
+st.caption(f"🔴 Player 1 moves: {player1_moves} | 🔵 Player 2 moves: {player2_moves}")
 
 # End of app.py
