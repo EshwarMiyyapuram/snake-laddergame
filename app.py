@@ -1,17 +1,6 @@
 # app.py
-"""Streamlit implementation of a two‑player Snake and Ladder game.
-
-Features:
-- 10×10 board visualised with emojis and numbers
-- Two players (🔴 Player 1, 🔵 Player 2)
-- Roll dice button (random 1‑6) — now in a side panel next to the board
-- Automatic movement respecting snakes, ladders and exact‑100 rule
-- Turn indicator, dice display, move history, and score board
-- Celebration with Streamlit balloons when someone wins
-- Restart button to start a fresh game
-- Sidebar with rules, "About" and a reset button
-- Custom CSS for a modern, colourful UI
-"""
+"""Streamlit Snake & Ladder — 2 to 6 players, extra turn on 6, custom names,
+snake/ladder destination shown on board, side dice panel, winner announcement."""
 
 import streamlit as st
 from Utils import (
@@ -29,25 +18,38 @@ from Utils import (
 st.set_page_config(layout="wide")
 
 # -------------------------------------------------------------------
-# Session state initialisation
+# Setup screen (choose number of players + names) before game starts
 # -------------------------------------------------------------------
 if "game" not in st.session_state:
-    st.session_state["game"] = initialize_game_state()
+    st.session_state["setup_done"] = False
+
+if not st.session_state.get("setup_done", False):
+    st.markdown("<h1 style='text-align:center;'>🐍 Snake & Ladder Setup 🪜</h1>", unsafe_allow_html=True)
+    st.write("Choose number of players and enter their names.")
+
+    num_players = st.selectbox("Number of Players", [2, 3, 4, 5, 6], index=0)
+
+    names = []
+    cols = st.columns(num_players)
+    for i in range(num_players):
+        with cols[i]:
+            default = f"Player {i+1}"
+            n = st.text_input(f"Name {i+1}", value=default, key=f"name_input_{i}")
+            names.append(n.strip() if n.strip() else default)
+
+    if st.button("🚀 Start Game"):
+        st.session_state["game"] = initialize_game_state(num_players, names)
+        st.session_state["setup_done"] = True
+        st.rerun()
+
+    st.stop()
 
 state = st.session_state["game"]
 
 # -------------------------------------------------------------------
-# Helper: display the board (10×10 grid)
+# Helper: display the board
 # -------------------------------------------------------------------
 def display_board():
-    """Render the board using Streamlit columns.
-
-    The board follows the classic serpentine numbering:
-    - Row 1 (bottom) left → right (1‑10)
-    - Row 2 right → left (11‑20)
-    - … and so on up to 100 at the top left.
-    """
-    player_positions = {"player1": state["player1"], "player2": state["player2"]}
     for row_idx in reversed(range(BOARD_DIM)):
         start = row_idx * BOARD_DIM + 1
         end = start + BOARD_DIM - 1
@@ -57,36 +59,29 @@ def display_board():
             numbers = list(reversed(range(start, end + 1)))
         cols = st.columns(BOARD_DIM)
         for col, cell_num in zip(cols, numbers):
-            cell_content = format_cell(cell_num, player_positions)
+            cell_content = format_cell(cell_num, state["positions"], state["icons"])
             col.markdown(
-                f"""
-                <div class='cell'>
-                {cell_content}
-                </div>
-                """,
+                f"<div class='cell'>{cell_content}</div>",
                 unsafe_allow_html=True,
             )
 
 # -------------------------------------------------------------------
-# UI – Sidebar (rules / about / restart)
+# Sidebar
 # -------------------------------------------------------------------
 st.sidebar.title("🐍 Snake & Ladder")
 with st.sidebar.expander("📝 Game Rules"):
     st.write(
-        "* Two players start off the board (position 0).\n"
+        "* Players start off the board (position 0).\n"
         "* Roll the dice (1‑6) and move forward.\n"
+        "* Rolling a **6** gives you an extra turn!\n"
         "* Landing on a **ladder** climbs you up.\n"
         "* Landing on a **snake** slides you down.\n"
-        "* You must land **exactly** on 100 to win – overshoot means you stay still.\n"
+        "* You must land **exactly** on 100 to win.\n"
         "* First player to reach 100 wins!"
     )
-with st.sidebar.expander("ℹ️ About the Game"):
-    st.write(
-        "A simple, beginner‑friendly implementation built with Python 3 and Streamlit. "
-        "No backend, no database – everything lives in the browser session."
-    )
-if st.sidebar.button("🔄 Restart Game"):
-    st.session_state["game"] = initialize_game_state()
+if st.sidebar.button("🔄 Restart / New Game"):
+    st.session_state.pop("game", None)
+    st.session_state["setup_done"] = False
     st.rerun()
 
 # -------------------------------------------------------------------
@@ -107,12 +102,17 @@ st.markdown(
     .cell {
         border: 1px solid #ddd;
         border-radius: 4px;
-        padding: 6px;
-        height: 60px;
-        width: 60px;
+        padding: 4px;
+        height: 70px;
+        width: 70px;
         text-align: center;
-        font-size: 0.9rem;
+        font-size: 0.75rem;
         background: #f9f9f9;
+        color: #111;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        line-height: 1.1;
     }
     .stButton>button {
         background: linear-gradient(90deg, #36d1dc, #5b86e5);
@@ -123,36 +123,36 @@ st.markdown(
         font-weight: 600;
         width: 100%;
     }
-    .stButton>button:hover {
-        filter: brightness(1.1);
-    }
-    .side-panel {
-        background: #1a1c24;
-        border-radius: 10px;
-        padding: 1rem;
-    }
+    .stButton>button:hover { filter: brightness(1.1); }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-# -------------------------------------------------------------------
-# Main title
-# -------------------------------------------------------------------
 st.markdown("<div class='title'>🐍 Snake & Ladder 🪜</div>", unsafe_allow_html=True)
 
 # -------------------------------------------------------------------
-# Main layout: board on the left, dice/controls/scoreboard on the right
+# Winner banner
+# -------------------------------------------------------------------
+if state["winner"]:
+    winner_name = state["names"][state["winner"]]
+    winner_icon = state["icons"][state["winner"]]
+    st.success(f"🎉 {winner_icon} {winner_name} wins the game! 🎉")
+
+# -------------------------------------------------------------------
+# Main layout
 # -------------------------------------------------------------------
 board_col, side_col = st.columns([3, 1])
 
 with side_col:
     st.markdown("### 🎯 Status")
+    for p in state["players"]:
+        st.metric(f"{state['icons'][p]} {state['names'][p]}", state["positions"][p])
 
-    turn_name = "🔴 Player 1" if state["turn"] == "player1" else "🔵 Player 2"
-    st.metric("🔴 Player 1", state["player1"])
-    st.metric("🔵 Player 2", state["player2"])
-    st.metric("Turn", turn_name)
+    current_player = state["players"][state["turn_index"]]
+    current_name = state["names"][current_player]
+    current_icon = state["icons"][current_player]
+    st.markdown(f"**Turn: {current_icon} {current_name}**")
 
     st.markdown("---")
     st.markdown(f"### Dice: {state['dice']} 🎲")
@@ -160,17 +160,26 @@ with side_col:
     if st.button("Roll Dice 🎲") and not state["winner"]:
         roll = roll_dice()
         state["dice"] = roll
-        old_pos = state[state["turn"]]
+
+        old_pos = state["positions"][current_player]
         new_pos, message = move_player(old_pos, roll)
-        state[state["turn"]] = new_pos
-        record_move(state, roll, message, old_pos, new_pos)
+        state["positions"][current_player] = new_pos
+        record_move(state, current_player, roll, message, old_pos, new_pos)
+
         if new_pos == BOARD_SIZE:
-            state["winner"] = state["turn"]
-            st.success(f"{turn_name} wins! 🎉")
+            state["winner"] = current_player
             st.balloons()
         else:
-            state["turn"] = "player2" if state["turn"] == "player1" else "player1"
+            if roll == 6:
+                # extra turn: same player goes again
+                state["extra_turn"] = True
+            else:
+                state["extra_turn"] = False
+                state["turn_index"] = (state["turn_index"] + 1) % len(state["players"])
         st.rerun()
+
+    if state.get("extra_turn") and not state["winner"]:
+        st.info(f"🎲 Rolled a 6! {current_name} gets another turn!")
 
     st.markdown("---")
     st.markdown("### 🕹️ Move History")
@@ -185,10 +194,13 @@ with board_col:
     display_board()
 
 # -------------------------------------------------------------------
-# Footer – number of moves per player
+# Footer
 # -------------------------------------------------------------------
-player1_moves = sum(1 for h in state["history"] if h.startswith("Player1"))
-player2_moves = sum(1 for h in state["history"] if h.startswith("Player2"))
-st.caption(f"🔴 Player 1 moves: {player1_moves} | 🔵 Player 2 moves: {player2_moves}")
+move_counts = " | ".join(
+    f"{state['icons'][p]} {state['names'][p]} moves: "
+    f"{sum(1 for h in state['history'] if h.startswith(state['names'][p]))}"
+    for p in state["players"]
+)
+st.caption(move_counts)
 
 # End of app.py
